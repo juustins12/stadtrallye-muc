@@ -91,7 +91,65 @@ function loadState(){
   STATIONS.forEach(s=>{ if(!state.stations[s.id]) state.stations[s.id] = {stamped:false, tasks:s.tasks.map(()=>false)}; });
   if(state.solved === undefined) state.solved = false;
 }
-function saveState(){ localStorage.setItem(storeKey(), JSON.stringify(state)); }
+function saveState(){ localStorage.setItem(storeKey(), JSON.stringify(state)); cloudPush(); }
+
+/* ============================ CLOUD (Firebase, optional) ============================ */
+let db = null;
+function cloudReady(){ return db !== null; }
+function cloudInit(){
+  try{
+    if(typeof firebase !== "undefined" && typeof FIREBASE_CONFIG !== "undefined"
+       && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith("DEIN")){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.database();
+      console.log("Cloud: verbunden.");
+    } else {
+      console.log("Cloud: keine Config – App läuft offline (nur lokal).");
+    }
+  }catch(e){ console.warn("Cloud-Init fehlgeschlagen:", e); db = null; }
+}
+function cloudPush(){
+  if(!db || !groupId) return;
+  const grp = GROUPS.find(g=>g.id===groupId);
+  const stamps = STATIONS.filter(s=>state.stations[s.id].stamped).length;
+  const stations = {};
+  STATIONS.forEach(s=>{
+    const st = state.stations[s.id];
+    stations["s"+s.id] = { stamped: !!st.stamped, done: st.tasks.filter(Boolean).length, total: st.tasks.length };
+  });
+  db.ref("rallye/"+groupId).update({
+    name: grp.name.de, emoji: grp.emoji, color: grp.color,
+    stamps: stamps, solved: !!state.solved, stations: stations,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP
+  }).catch(e=>console.warn("Cloud-Push:", e));
+}
+
+/* ============================ STANDORT-FREIGABE ============================ */
+let geoWatch = null;
+function isSharing(){ return localStorage.getItem("rally_geo") === "1"; }
+function startGeo(){
+  if(!navigator.geolocation){ toast(lang==='de'?'Standort nicht verfügbar.':'位置情報を利用できません。'); setGeoChk(false); return; }
+  if(geoWatch !== null) return;
+  geoWatch = navigator.geolocation.watchPosition(
+    pos=>{
+      if(db && groupId){
+        db.ref("rallye/"+groupId+"/loc").set({
+          lat: pos.coords.latitude, lng: pos.coords.longitude,
+          at: firebase.database.ServerValue.TIMESTAMP
+        }).catch(()=>{});
+      }
+    },
+    err=>{ toast(lang==='de'?'Standort-Zugriff abgelehnt.':'位置情報が拒否されました。'); setGeoChk(false); stopGeoWatch(); localStorage.setItem("rally_geo","0"); },
+    { enableHighAccuracy:true, maximumAge:8000, timeout:20000 }
+  );
+}
+function stopGeoWatch(){ if(geoWatch!==null){ navigator.geolocation.clearWatch(geoWatch); geoWatch=null; } }
+function setLocationSharing(on){
+  localStorage.setItem("rally_geo", on?"1":"0");
+  if(on){ startGeo(); toast(lang==='de'?'Standort wird geteilt.':'位置情報を共有中。'); }
+  else{ stopGeoWatch(); if(db && groupId) db.ref("rallye/"+groupId+"/loc").remove().catch(()=>{}); toast(lang==='de'?'Standort-Freigabe beendet.':'位置情報の共有を停止。'); }
+}
+function setGeoChk(v){ const c=document.getElementById("geoChk"); if(c) c.checked=v; }
 
 /* ============================ NAV ============================ */
 function show(id){
@@ -126,8 +184,11 @@ function renderGroups(){
 function pickGroup(id){
   groupId = id;
   loadState();
+  cloudPush();                 // Gruppe sofort im Operator-Dashboard sichtbar machen
   renderRoute();
   show("screen-route");
+  setGeoChk(isSharing());
+  if(isSharing()) startGeo();  // Standort-Freigabe nach Neuladen fortsetzen
 }
 
 /* ============================ RENDER: route ============================ */
@@ -272,6 +333,11 @@ document.addEventListener("keydown", (e)=>{
   if(e.key==="Enter" && e.target.id==="answerInput"){ checkAnswer(); }
 });
 
+document.addEventListener("change", (e)=>{
+  if(e.target.id==="geoChk"){ setLocationSharing(e.target.checked); }
+});
+
 /* ============================ INIT ============================ */
+cloudInit();
 setLang(lang);
 renderGroups();

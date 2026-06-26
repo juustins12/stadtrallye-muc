@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator · München Stadtrallye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root{
+    --bg:#16140f; --panel:#211e17; --panel-2:#2b271e; --line:#3a3528;
+    --paper:#f3ebdb; --ink:#f3ebdb; --soft:#b3a98f; --blue:#4d9be6; --seal:#e0664f; --ok:#5bbd6e; --gold:#d6a94b;
+    --display:"Fraunces",Georgia,serif; --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--body);background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .bar{position:sticky;top:0;z-index:20;background:rgba(22,20,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;align-items:center;gap:12px}
+  .bar h1{font-family:var(--display);font-weight:900;font-size:1.1rem;letter-spacing:.3px}
+  .bar .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(91,189,110,.18)}
+  .bar .dot.off{background:var(--seal);box-shadow:0 0 0 4px rgba(224,102,79,.18)}
+  .bar .spacer{flex:1}
+  .bar .status{font-size:.78rem;color:var(--soft)}
+  .bar button{background:var(--panel-2);color:var(--soft);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:.78rem;cursor:pointer;font-family:var(--body);font-weight:700}
+  .bar button:hover{color:var(--ink)}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px}
+
+  /* gate */
+  #gate{max-width:380px;margin:14vh auto;text-align:center;padding:0 20px}
+  #gate .lock{font-size:2.4rem}
+  #gate h2{font-family:var(--display);font-weight:900;font-size:1.7rem;margin:10px 0 4px}
+  #gate p{color:var(--soft);font-size:.9rem;margin-bottom:18px}
+  #gate input{width:100%;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:1rem;font-family:var(--body);text-align:center;letter-spacing:.15em}
+  #gate button{width:100%;margin-top:10px;padding:13px;border:0;border-radius:12px;background:var(--seal);color:#fff;font-family:var(--display);font-weight:600;font-size:1.02rem;cursor:pointer}
+  #gate .err{color:var(--seal);font-size:.82rem;margin-top:10px;min-height:1em}
+
+  #dash{display:none}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:22px}
+  .gcard{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--gc,#888);border-radius:14px;padding:16px}
+  .gcard .top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .gcard .emoji{font-size:1.6rem}
+  .gcard h3{font-family:var(--display);font-weight:900;font-size:1.2rem;line-height:1}
+  .gcard .seen{font-size:.72rem;color:var(--soft)}
+  .gcard .seen.stale{color:var(--seal)}
+  .meter{height:10px;border-radius:999px;background:var(--panel-2);overflow:hidden;margin:8px 0 4px}
+  .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--ok));transition:width .5s}
+  .gcard .nums{display:flex;justify-content:space-between;font-size:.8rem;color:var(--soft);margin-top:2px}
+  .gcard .nums b{color:var(--ink)}
+  .dots{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+  .dots span{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:.72rem;background:var(--panel-2);color:var(--soft);border:1px solid var(--line)}
+  .dots span.on{background:var(--seal);color:#fff;border-color:var(--seal)}
+  .badge{display:inline-block;margin-top:12px;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:999px}
+  .badge.solved{background:rgba(91,189,110,.18);color:var(--ok)}
+  .badge.pending{background:var(--panel-2);color:var(--soft)}
+  .geo{font-size:.72rem;color:var(--soft);margin-top:8px;display:flex;align-items:center;gap:5px}
+  .geo.live{color:var(--ok)}
+
+  .maphead{font-family:var(--display);font-weight:900;font-size:1.15rem;margin:6px 0 10px;display:flex;align-items:center;gap:8px}
+  #map{height:440px;border-radius:16px;border:1px solid var(--line);z-index:1}
+  .leaflet-container{background:#0d0c09}
+  .pin{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);display:grid;place-items:center}
+  .pin span{transform:rotate(45deg);font-size:.7rem;font-weight:900;color:#fff;font-family:var(--display)}
+  .note{color:var(--soft);font-size:.78rem;margin-top:14px;line-height:1.6}
+  .danger{margin-top:18px}
+  .danger button{background:transparent;border:1px solid var(--seal);color:var(--seal);border-radius:10px;padding:9px 14px;font-size:.82rem;cursor:pointer;font-family:var(--body);font-weight:700}
+  .danger button:hover{background:var(--seal);color:#fff}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="lock">🔒</div>
+  <h2>Operator-Ansicht</h2>
+  <p>Bitte den Zugangscode des Orga-Teams eingeben.</p>
+  <input id="codeInput" type="password" placeholder="Code" autocomplete="off">
+  <button id="codeBtn">Öffnen</button>
+  <div class="err" id="codeErr"></div>
+</div>
+
+<div id="dash">
+  <div class="bar">
+    <span class="dot" id="connDot"></span>
+    <h1>Rallye-Leitstand</h1>
+    <span class="spacer"></span>
+    <span class="status" id="connStatus">verbinde…</span>
+    <button id="logoutBtn">Sperren</button>
+  </div>
+  <div class="wrap">
+    <div class="grid" id="groupGrid"></div>
+
+    <div class="maphead">🗺️ Live-Standorte <span class="status" id="locCount" style="font-weight:400"></span></div>
+    <div id="map"></div>
+
+    <p class="note">
+      Standorte erscheinen nur, wenn eine Gruppe die Freigabe in der App aktiviert hat. Aktualisierung erfolgt automatisch in Echtzeit.<br>
+      <b>Datenschutz:</b> Nach dem Event alle Daten löschen.
+    </p>
+    <div class="danger">
+      <button id="wipeBtn">⚠ Alle Rallye-Daten löschen (nach dem Event)</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="firebase-config.js"></script>
+<script src="operator.js"></script>
+</body>
+</html>
