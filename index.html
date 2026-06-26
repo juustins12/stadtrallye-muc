@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>München Stadtrallye · 街歩きラリー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f3ebdb;
+    --paper-2:#ece1cc;
+    --card:#fbf6ec;
+    --ink:#2b2620;
+    --ink-soft:#7a6f5f;
+    --line:#d8cab0;
+    --blue:#0d57a0;
+    --blue-deep:#073566;
+    --seal:#c33d2c;
+    --seal-deep:#9c2c1f;
+    --gold:#b07d2b;
+    --ok:#3a8f4f;
+    --shadow:0 18px 40px -22px rgba(43,38,32,.55);
+    --radius:18px;
+    --display:"Fraunces","Zen Maru Gothic",Georgia,serif;
+    --body:"Zen Kaku Gothic New","Helvetica Neue",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    background:var(--paper);
+    background-image:
+      radial-gradient(120% 90% at 90% -10%, rgba(13,87,160,.10), transparent 55%),
+      radial-gradient(120% 80% at -10% 110%, rgba(195,61,44,.10), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+    min-height:100vh;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:780px;margin:0 auto;padding:0 18px 120px}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:40;
+    backdrop-filter:blur(8px);
+    background:linear-gradient(180deg, rgba(243,235,219,.96), rgba(243,235,219,.78));
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-in{max-width:780px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:900;letter-spacing:.3px;font-size:1.02rem}
+  .brand .seal-dot{width:22px;height:22px;border-radius:50%;background:var(--seal);color:#fff;display:grid;place-items:center;font-size:.7rem;box-shadow:inset 0 0 0 2px rgba(255,255,255,.45)}
+  .spacer{flex:1}
+  .lang-toggle{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+  .lang-toggle button{border:0;background:transparent;padding:6px 12px;font-family:var(--body);font-weight:700;font-size:.82rem;color:var(--ink-soft);cursor:pointer;transition:.18s}
+  .lang-toggle button.active{background:var(--ink);color:var(--paper)}
+  .iconbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;font-size:1rem;color:var(--ink-soft);transition:.18s}
+  .iconbtn:hover{color:var(--ink);border-color:var(--ink-soft)}
+  .iconbtn[hidden]{display:none}
+
+  /* ---------- screens ---------- */
+  .screen{display:none;animation:fade .5s ease both}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:46px 0 8px;text-align:center;position:relative}
+  .kicker{font-weight:700;letter-spacing:.32em;text-transform:uppercase;font-size:.7rem;color:var(--seal)}
+  .hero h1{font-family:var(--display);font-weight:900;line-height:1.02;font-size:clamp(2.3rem,8vw,3.6rem);margin:14px 0 6px;letter-spacing:-.5px}
+  .hero h1 .ja{display:block;font-size:.5em;color:var(--blue-deep);margin-top:6px;letter-spacing:0}
+  .hero p.sub{color:var(--ink-soft);max-width:46ch;margin:14px auto 0;font-size:1.02rem}
+  .crest{width:64px;height:64px;margin:0 auto;display:grid;place-items:center;border-radius:50%;
+    background:conic-gradient(var(--blue) 0 25%, #fff 0 50%, var(--blue) 0 75%, #fff 0 100%);
+    box-shadow:var(--shadow), inset 0 0 0 3px var(--ink);font-size:1.6rem}
+
+  .factbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:30px 0 6px}
+  .fact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:120px;text-align:center;box-shadow:var(--shadow)}
+  .fact b{display:block;font-family:var(--display);font-size:1.45rem;color:var(--blue-deep)}
+  .fact span{font-size:.78rem;color:var(--ink-soft)}
+
+  .howto{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px;margin:28px 0;box-shadow:var(--shadow)}
+  .howto h3{font-family:var(--display);font-size:1.2rem;margin-bottom:12px}
+  .howto ol{list-style:none;counter-reset:s;display:grid;gap:10px}
+  .howto li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;font-size:.95rem}
+  .howto li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.82rem;font-family:var(--display)}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;
+    font-family:var(--display);font-weight:600;font-size:1.05rem;padding:15px 30px;border-radius:14px;
+    background:var(--seal);color:#fff;box-shadow:var(--shadow);transition:.2s;width:100%}
+  .btn:hover{transform:translateY(-2px);background:var(--seal-deep)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper)}
+
+  /* ---------- groups ---------- */
+  .section-h{text-align:center;margin:34px 0 22px}
+  .section-h h2{font-family:var(--display);font-size:clamp(1.7rem,5vw,2.3rem);font-weight:900}
+  .section-h p{color:var(--ink-soft);margin-top:6px}
+  .group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .gcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 18px;cursor:pointer;text-align:left;transition:.2s;box-shadow:var(--shadow);overflow:hidden}
+  .gcard:hover{transform:translateY(-4px)}
+  .gcard .bar{position:absolute;inset:0 auto 0 0;width:7px;background:var(--gc)}
+  .gcard .emoji{font-size:2rem}
+  .gcard h3{font-family:var(--display);font-size:1.35rem;margin:8px 0 2px;color:var(--gc)}
+  .gcard .gnum{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+  .gcard .go{margin-top:12px;font-size:.85rem;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+
+  /* ---------- route ---------- */
+  .ghead{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-left:7px solid var(--gc);border-radius:var(--radius);padding:16px 18px;margin:22px 0 18px;box-shadow:var(--shadow)}
+  .ghead .emoji{font-size:2.1rem}
+  .ghead h2{font-family:var(--display);font-size:1.5rem;color:var(--gc);line-height:1}
+  .ghead .sub{font-size:.8rem;color:var(--ink-soft);letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+
+  .progress{margin:0 0 22px}
+  .stamprow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .stamp{width:50px;height:50px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-weight:900;color:var(--line);position:relative;transition:.3s}
+  .stamp.got{border:2.5px solid var(--seal);color:var(--seal);transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1) both}
+  .stamp.got::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--seal);opacity:.4}
+  @keyframes stamp{0%{transform:scale(2.2) rotate(20deg);opacity:0}60%{opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+  .ptext{text-align:center;font-size:.85rem;color:var(--ink-soft)}
+
+  .start-pin{display:flex;gap:12px;align-items:center;background:linear-gradient(120deg,var(--blue),var(--blue-deep));color:#fff;border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .start-pin .b{font-family:var(--display);font-weight:700;font-size:1.05rem}
+  .start-pin .s{font-size:.82rem;opacity:.85}
+  .start-pin .num{font-size:1.5rem}
+
+  .station{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden}
+  .st-head{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;user-select:none}
+  .st-num{flex:none;width:40px;height:40px;border-radius:12px;background:var(--paper-2);display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:1.2rem;color:var(--blue-deep)}
+  .station.complete .st-num{background:var(--seal);color:#fff}
+  .st-titles{flex:1;min-width:0}
+  .st-titles h3{font-family:var(--display);font-size:1.18rem;line-height:1.1}
+  .st-titles .meta{font-size:.78rem;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;margin-top:3px}
+  .chev{transition:.3s;color:var(--ink-soft)}
+  .station.open .chev{transform:rotate(180deg)}
+  .st-body{display:none;padding:0 18px 18px;border-top:1px dashed var(--line)}
+  .station.open .st-body{display:block;animation:fade .35s ease both}
+  .st-body .intro{font-size:.95rem;color:var(--ink);margin:14px 0 4px}
+  .st-body .why{display:inline-block;font-size:.74rem;color:var(--seal);font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-top:14px}
+
+  .tasks{list-style:none;display:grid;gap:8px;margin:10px 0 4px}
+  .tasks li{display:flex;gap:10px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;transition:.15s;font-size:.92rem}
+  .tasks li:hover{border-color:var(--ink-soft)}
+  .tasks li.checked{background:#eef6ee;border-color:#bcdcc1}
+  .tasks .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--ink-soft);display:grid;place-items:center;font-size:.8rem;color:#fff;transition:.15s}
+  .tasks li.checked .box{background:var(--ok);border-color:var(--ok)}
+  .tasks .tag{flex:none;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--blue);color:#fff;align-self:center}
+  .tasks .tag.photo{background:var(--seal)}
+
+  .fact-mini{font-size:.84rem;color:var(--ink-soft);background:var(--paper);border-radius:10px;padding:10px 12px;margin-top:12px;border-left:3px solid var(--gold)}
+  .st-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .maplink{flex:1;text-align:center;border:1.5px solid var(--blue);color:var(--blue);border-radius:12px;padding:11px;font-weight:700;text-decoration:none;font-size:.9rem;transition:.15s}
+  .maplink:hover{background:var(--blue);color:#fff}
+  .stampbtn{flex:1;border:0;border-radius:12px;padding:11px;font-family:var(--display);font-weight:700;font-size:.98rem;background:var(--ink);color:var(--paper);cursor:pointer;transition:.15s}
+  .stampbtn:hover{background:#000}
+  .stampbtn.done{background:var(--ok);cursor:default}
+
+  /* ---------- big task / puzzle ---------- */
+  .panel{border-radius:var(--radius);padding:22px;margin:26px 0;box-shadow:var(--shadow)}
+  .panel.mission{background:linear-gradient(135deg,#fff,var(--card));border:1px solid var(--line)}
+  .panel h3{font-family:var(--display);font-size:1.35rem;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+  .panel .lead{color:var(--ink-soft);font-size:.92rem;margin-bottom:12px}
+  .panel ul{list-style:none;display:grid;gap:10px}
+  .panel ul li{display:flex;gap:10px;font-size:.94rem}
+  .panel ul li .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--seal);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.8rem;font-family:var(--display)}
+
+  .panel.puzzle{background:linear-gradient(150deg,var(--blue-deep),#0a2747);color:#f3ebdb;border:0;text-align:center}
+  .panel.puzzle h3{justify-content:center;color:#fff}
+  .panel.puzzle .lead{color:rgba(243,235,219,.78)}
+  .letters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+  .letters span{width:46px;height:56px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:1.5rem;color:#fff}
+  .letters span.empty{color:rgba(255,255,255,.25)}
+  .answer{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+  .answer input{font-family:var(--display);font-weight:700;font-size:1.1rem;letter-spacing:.3em;text-align:center;text-transform:uppercase;padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;width:200px}
+  .answer input::placeholder{color:rgba(255,255,255,.4);letter-spacing:normal}
+  .answer button{border:0;border-radius:12px;padding:0 22px;background:var(--seal);color:#fff;font-family:var(--display);font-weight:700;cursor:pointer;font-size:1rem}
+  .answer button:hover{background:var(--seal-deep)}
+  .solved-box{display:none;margin-top:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:18px}
+  .solved-box.show{display:block;animation:fade .5s ease both}
+  .solved-box .big{font-family:var(--display);font-weight:900;font-size:2rem;color:#fff}
+  .puzzle .hint{font-size:.82rem;color:#ffd9a8;margin-top:10px}
+
+  footer{text-align:center;color:var(--ink-soft);font-size:.78rem;margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:999px;font-weight:600;font-size:.9rem;opacity:0;pointer-events:none;transition:.3s;z-index:90;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  [data-ja]{display:none}
+  body.ja [data-de]{display:none}
+  body.ja [data-ja]{display:initial}
+</style>
+</head>
+<body class="de">
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="seal-dot">絆</span><span data-de>München Rallye</span><span data-ja>ミュンヘン・ラリー</span></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="homeBtn" hidden data-nav="screen-welcome" title="Start">↺</button>
+    <div class="lang-toggle">
+      <button id="btn-de" class="active" data-lang="de">DE</button>
+      <button id="btn-ja" data-lang="ja">日本語</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ WELCOME ============ -->
+  <section class="screen active" id="screen-welcome">
+    <div class="hero">
+      <div class="crest">🦁</div>
+      <p class="kicker" style="margin-top:18px">Deutsch · 日本 · Sport</p>
+      <h1>München Stadtrallye<span class="ja">ミュンヘン街歩きラリー</span></h1>
+      <p class="sub" data-de>Deutsch-Japanischer Sportjugend-Simultanaustausch — entdeckt München zu sechst, sammelt Stempel und löst gemeinsam das große Rätsel.</p>
+      <p class="sub" data-ja>日独スポーツ少年団同時交流 — グループでミュンヘンを巡り、スタンプを集めて、みんなで最後の謎を解こう。</p>
+    </div>
+
+    <div class="factbar">
+      <div class="fact"><b>6</b><span data-de>Stationen</span><span data-ja>スポット</span></div>
+      <div class="fact"><b>~2 h</b><span data-de>+ 1 h Puffer</span><span data-ja>+ 予備1時間</span></div>
+      <div class="fact"><b>5</b><span data-de>Gruppen</span><span data-ja>グループ</span></div>
+      <div class="fact"><b>絆</b><span data-de>End-Rätsel</span><span data-ja>最後の謎</span></div>
+    </div>
+
+    <div class="howto">
+      <h3 data-de>So funktioniert's</h3><h3 data-ja>遊び方</h3>
+      <ol>
+        <li><span data-de><b>Start am Marienplatz.</b> Wählt unten eure Gruppe — jede Gruppe hat dieselben Orte, aber in anderer Reihenfolge.</span><span data-ja><b>マリエン広場からスタート。</b>下でグループを選ぼう。どのグループも同じ場所を、違う順番で回ります。</span></li>
+        <li><span data-de>An jeder Station gibt es eine kurze Info und kleine Aufgaben (oft mit Foto). Hakt erledigte Aufgaben ab.</span><span data-ja>各スポットには簡単な紹介と小さな課題（写真が多い）があります。終わったらチェックを入れよう。</span></li>
+        <li><span data-de>Holt euch an jeder Station einen <b>Stempel mit Buchstaben</b>. Kurze ÖPNV-Fahrten sind erlaubt.</span><span data-ja>各スポットで<b>文字入りのスタンプ</b>をもらおう。短い距離なら公共交通機関の利用もOK。</span></li>
+        <li><span data-de>Am Ende habt ihr 6 Buchstaben — setzt das große Rätsel zusammen!</span><span data-ja>最後に6つの文字が揃います。並べ替えて最後の謎を解こう！</span></li>
+      </ol>
+    </div>
+
+    <button class="btn" data-nav="screen-groups"><span data-de>Gruppe wählen →</span><span data-ja>グループを選ぶ →</span></button>
+  </section>
+
+  <!-- ============ GROUPS ============ -->
+  <section class="screen" id="screen-groups">
+    <div class="section-h">
+      <h2 data-de>Wählt eure Gruppe</h2><h2 data-ja>グループを選んでください</h2>
+      <p data-de>Jede Gruppe startet an einer anderen Station.</p>
+      <p data-ja>グループごとに最初のスポットが異なります。</p>
+    </div>
+    <div class="group-grid" id="groupGrid"></div>
+    <div style="margin-top:22px"><button class="btn ghost" data-nav="screen-welcome"><span data-de>← Zurück</span><span data-ja>← もどる</span></button></div>
+  </section>
+
+  <!-- ============ ROUTE ============ -->
+  <section class="screen" id="screen-route">
+    <div class="ghead" id="ghead"></div>
+
+    <div class="start-pin">
+      <span class="num">📍</span>
+      <div>
+        <div class="b" data-de>Start: Marienplatz</div><div class="b" data-ja>スタート：マリエン広場</div>
+        <div class="s" data-de>Treffpunkt für alle Gruppen — am Fischbrunnen.</div>
+        <div class="s" data-ja>全グループの集合場所 — 魚の噴水のそば。</div>
+      </div>
+    </div>
+
+    <div class="progress">
+      <div class="ptext" data-de>Eure Stempel:</div><div class="ptext" data-ja>あなたのスタンプ：</div>
+      <div class="stamprow" id="stamprow"></div>
+    </div>
+
+    <div id="stationList"></div>
+
+    <!-- mission -->
+    <div class="panel mission">
+      <h3>🎽 <span data-de>Gesamt-Aufgabe</span><span data-ja>全体の課題</span></h3>
+      <p class="lead" data-de>Gilt für die ganze Rallye — denkt von Anfang an daran!</p>
+      <p class="lead" data-ja>ラリー全体の課題です。最初から忘れずに！</p>
+      <ul>
+        <li><span class="n">1</span><span data-de><b>Sport-Outfit:</b> Ein Mitglied eurer Gruppe trägt ein Kleidungsstück eines Münchner Vereins (FC Bayern, TSV 1860, EHC Red Bull München) — Trikot, Schal oder Mütze. Macht ein Foto! <i>Tipp: Fan-Shops in der Neuhauser-/Kaufingerstraße.</i></span><span data-ja><b>スポーツ着：</b>グループの誰か1人が、ミュンヘンのチーム（FCバイエルン、TSV1860、EHCレッドブル）のユニフォーム・マフラー・帽子を身につけよう。写真も忘れずに！<i>ヒント：Neuhauser通り／Kaufinger通りにファンショップあり。</i></span></li>
+        <li><span class="n">2</span><span data-de><b>Buchstaben sammeln:</b> Jede Station gibt euch einen Buchstaben. Sammelt alle 6 und löst unten das End-Rätsel.</span><span data-ja><b>文字集め：</b>各スポットで文字を1つもらえます。6つ集めて、下の最後の謎を解こう。</span></li>
+      </ul>
+    </div>
+
+    <!-- puzzle -->
+    <div class="panel puzzle">
+      <h3>🧩 <span data-de>Das End-Rätsel</span><span data-ja>最後の謎</span></h3>
+      <p class="lead" data-de>Ordnet eure 6 Buchstaben zu einem japanischen Wort.</p>
+      <p class="lead" data-ja>集めた6つの文字を並べ替えて、日本語の言葉を作ろう。</p>
+      <div class="letters" id="letters"></div>
+      <p class="hint" data-de>Hinweis: Es bedeutet das unsichtbare Band zwischen Menschen — genau darum geht es bei diesem Austausch.</p>
+      <p class="hint" data-ja>ヒント：人と人をつなぐ目に見えない「つながり」——この交流のテーマそのものです。</p>
+      <div class="answer">
+        <input id="answerInput" maxlength="12" placeholder="? ? ? ? ? ?" autocomplete="off">
+        <button data-act="check" data-de>Prüfen</button><button data-act="check" data-ja>確認</button>
+      </div>
+      <div class="solved-box" id="solvedBox">
+        <div class="big">絆 — KIZUNA</div>
+        <p style="margin-top:8px" data-de>= die Verbundenheit zwischen Menschen. Geschafft! 🎉<br>Geht jetzt zum gemeinsamen Treffpunkt: <b>Marienhof</b> (hinter dem Rathaus).</p>
+        <p style="margin-top:8px" data-ja>= 人と人との結びつき。クリア！🎉<br>それでは集合場所へ：<b>マリエンホーフ</b>（市庁舎の裏）。</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn ghost" style="flex:1" data-nav="screen-groups"><span data-de>Gruppe wechseln</span><span data-ja>グループを変える</span></button>
+      <button class="btn ghost" style="flex:1" data-act="reset"><span data-de>Fortschritt zurücksetzen</span><span data-ja>進捗をリセット</span></button>
+    </div>
+
+    <footer>
+      <span data-de>München Stadtrallye · Entwurf für die Deutsch-Japanische Sportjugend · Dolmetscher:innen sind dabei 🤝</span>
+      <span data-ja>ミュンヘン街歩きラリー · 日独スポーツ少年団のための企画案 · 通訳が同行します 🤝</span>
+    </footer>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
