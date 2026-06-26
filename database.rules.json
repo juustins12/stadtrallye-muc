@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "rallye": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

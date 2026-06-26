@@ -27,7 +27,7 @@ document.getElementById("logoutBtn").addEventListener("click", ()=>{ sessionStor
 if(sessionStorage.getItem("op_ok")==="1") unlock();
 
 /* ---------- Dashboard ---------- */
-let map = null, markers = {}, dbInitDone = false;
+var map = null, markers = {}, dbInitDone = false;
 
 function initDashboard(){
   if(dbInitDone) return; dbInitDone = true;

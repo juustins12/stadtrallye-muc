@@ -11,13 +11,13 @@
    "databaseURL".
    ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey: "DEIN_API_KEY",
-  authDomain: "DEIN_PROJEKT.firebaseapp.com",
-  databaseURL: "https://DEIN_PROJEKT-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "DEIN_PROJEKT",
-  storageBucket: "DEIN_PROJEKT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:xxxxxxxxxxxxxxxx"
+  apiKey: "AIzaSyA1PjC52pEKm_MY-VHnHWYuxLUkd1mTgg0",
+  authDomain: "stadtrally-muc-26.firebaseapp.com",
+  databaseURL: "https://stadtrally-muc-26-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "stadtrally-muc-26",
+  storageBucket: "stadtrally-muc-26.firebasestorage.app",
+  messagingSenderId: "1056065329207",
+  appId: "1:1056065329207:web:db3dabd348b0c33ff7c7b2"
 };
 
 /* Zugangscode für die Operator-Ansicht (operator.html).
