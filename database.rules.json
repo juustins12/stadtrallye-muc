@@ -3,6 +3,10 @@
     "rallye": {
       ".read": true,
       ".write": true
+    },
+    "rallye_photos": {
+      ".read": true,
+      ".write": true
     }
   }
 }

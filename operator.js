@@ -1,10 +1,10 @@
 /* ===================== Operator-Dashboard ===================== */
 const GROUP_META = [
-  { id:"loewen",  emoji:"🦁", color:"#4d9be6", name:"Löwen" },
-  { id:"adler",   emoji:"🦅", color:"#e0664f", name:"Adler" },
-  { id:"eisbach", emoji:"🌊", color:"#3fb6b6", name:"Eisbach" },
-  { id:"olympia", emoji:"🔥", color:"#5bbd6e", name:"Olympia" },
-  { id:"isar",    emoji:"🚣", color:"#9aa7d6", name:"Isar" }
+  { id:"loewen",  emoji:"🦁", color:"#4d9be6", name:"Löwen",   code:"1860" },
+  { id:"adler",   emoji:"🦅", color:"#e0664f", name:"Adler",   code:"1900" },
+  { id:"eisbach", emoji:"🌊", color:"#3fb6b6", name:"Eisbach", code:"2020" },
+  { id:"olympia", emoji:"🔥", color:"#5bbd6e", name:"Olympia", code:"1972" },
+  { id:"isar",    emoji:"🚣", color:"#9aa7d6", name:"Isar",    code:"2026" }
 ];
 const TOTAL_STAMPS = 6;
 const STATION_LETTERS = ["K","I","Z","U","N","A"]; // s1..s6
@@ -104,6 +104,7 @@ function renderGroups(data){
       <div class="dots">${dots}</div>
       <span class="badge ${solved?'solved':'pending'}">${solved?'🧩 Rätsel gelöst':'Rätsel offen'}</span>
       <div class="geo ${hasLoc?'live':''}">${geoTxt}</div>
+      <div class="code">🔑 Zugangscode: <b>${m.code}</b></div>
     </div>`;
   }).join("");
 

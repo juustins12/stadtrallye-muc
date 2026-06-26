@@ -147,6 +147,32 @@
   .tasks li.checked .box{background:var(--ok);border-color:var(--ok)}
   .tasks .tag{flex:none;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--blue);color:#fff;align-self:center}
   .tasks .tag.photo{background:var(--seal)}
+  .tasks li.phototask{flex-direction:column;align-items:stretch;cursor:default}
+  .tasks li.phototask:hover{border-color:var(--line)}
+  .tasks li.phototask .toprow{display:flex;gap:10px;align-items:flex-start}
+  .photoUp{display:flex;align-items:center;gap:10px;margin-top:10px;margin-left:32px;flex-wrap:wrap}
+  .photoBtn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--seal);color:var(--seal);border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;transition:.15s}
+  .photoBtn:hover{background:var(--seal);color:#fff}
+  .photoStatus{font-size:.8rem;color:var(--ok);font-weight:700}
+
+  /* ---------- lockbox (Standort-Freischaltung) ---------- */
+  .lockbox{margin:14px 0 2px;text-align:center;background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:24px 18px}
+  .lockbox .lockicon{font-size:1.8rem;margin-bottom:6px}
+  .lockbox p{font-size:.88rem;color:var(--ink-soft);max-width:36ch;margin:0 auto}
+  .lockbox .distinfo{margin:12px 0 14px;font-size:.85rem;font-weight:700;color:var(--blue-deep)}
+  .station.locked .st-num{background:var(--paper-2);color:var(--ink-soft)}
+
+  /* ---------- Gruppen-Code-Modal ---------- */
+  .codeModal{position:fixed;inset:0;background:rgba(43,38,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .codeModal.show{display:flex}
+  .codeBox{background:var(--card);border-radius:var(--radius);padding:28px 26px;max-width:340px;width:100%;text-align:center;box-shadow:var(--shadow)}
+  .codeBox .ccEmoji{font-size:2.1rem}
+  .codeBox h3{font-family:var(--display);font-size:1.3rem;margin:8px 0 10px}
+  .codeBox p{font-size:.88rem;color:var(--ink-soft)}
+  .codeBox input{margin-top:16px;width:100%;font-family:var(--display);font-weight:700;font-size:1.2rem;letter-spacing:.25em;text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)}
+  .codeBox .codeErr{color:var(--seal);font-size:.82rem;min-height:1.3em;margin-top:8px}
+  .codeBox .codeActions{display:flex;gap:10px;margin-top:6px}
+  .codeBox .codeActions .btn{padding:12px 18px;font-size:.92rem}
 
   .fact-mini{font-size:.84rem;color:var(--ink-soft);background:var(--paper);border-radius:10px;padding:10px 12px;margin-top:12px;border-left:3px solid var(--gold)}
   .st-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
@@ -327,6 +353,21 @@
     </footer>
   </section>
 
+</div>
+
+<div class="codeModal" id="codeModal">
+  <div class="codeBox">
+    <div class="ccEmoji" id="ccEmoji"></div>
+    <h3 id="ccTitle"></h3>
+    <p data-de>Gebt den Gruppen-Code ein, den ihr vom Orga-Team erhalten habt.</p>
+    <p data-ja>主催者から受け取ったグループコードを入力してください。</p>
+    <input id="codeAnswer" maxlength="8" placeholder="Code" autocomplete="off" inputmode="numeric">
+    <div class="codeErr" id="codeAnswerErr"></div>
+    <div class="codeActions">
+      <button class="btn ghost" data-act="code-cancel"><span data-de>Abbrechen</span><span data-ja>キャンセル</span></button>
+      <button class="btn" data-act="code-confirm"><span data-de>Bestätigen</span><span data-ja>確認</span></button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
