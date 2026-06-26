@@ -57,8 +57,9 @@ function initDashboard(){
     db.ref("rallye").on("value", snap=>{ renderGroups(snap.val() || {}); });
 
     document.getElementById("wipeBtn").addEventListener("click", ()=>{
-      if(confirm("Wirklich ALLE Rallye-Daten (Fortschritt + Standorte) löschen?")){
+      if(confirm("Wirklich ALLE Rallye-Daten (Fortschritt + Standorte + Fotos) löschen?")){
         db.ref("rallye").remove();
+        db.ref("rallye_photos").remove();
       }
     });
   }catch(e){
