@@ -80,6 +80,16 @@ const GROUPS = [
 const SOLUTION = "KIZUNA";
 
 /* ============================ STATE ============================ */
+// Testmodus: index.html?test=1 → Geofencing aus, alle Stationen offen,
+// kein Gruppen-Code, rein lokal (kein Firebase-Push). Bleibt für die
+// Sitzung aktiv, damit ein Reload den Test nicht abbricht.
+const TEST_MODE = (()=>{
+  if(new URLSearchParams(location.search).get("test") === "1"){
+    sessionStorage.setItem("rally_test","1"); return true;
+  }
+  return sessionStorage.getItem("rally_test") === "1";
+})();
+
 let lang = localStorage.getItem("rally_lang") || "de";
 let groupId = null;
 let state = {};
@@ -100,6 +110,7 @@ function saveState(){ localStorage.setItem(storeKey(), JSON.stringify(state)); c
 let db = null;
 function cloudReady(){ return db !== null; }
 function cloudInit(){
+  if(TEST_MODE){ console.log("Testmodus: Cloud deaktiviert – Fortschritt nur lokal."); return; }
   try{
     if(typeof firebase !== "undefined" && typeof FIREBASE_CONFIG !== "undefined"
        && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith("DEIN")){
@@ -324,7 +335,7 @@ function renderGroups(){
 }
 
 function selectGroup(id){
-  if(localStorage.getItem("rally_code_ok_"+id) === "1"){ pickGroup(id); }
+  if(TEST_MODE || localStorage.getItem("rally_code_ok_"+id) === "1"){ pickGroup(id); }
   else { openCodeModal(id); }
 }
 
@@ -356,7 +367,7 @@ function renderRoute(){
     const s = STATIONS.find(x=>x.id===sid);
     const st = state.stations[sid];
     const complete = st.stamped;
-    const locked = !st.unlocked;
+    const locked = !st.unlocked && !TEST_MODE;
     const tasks = s.tasks.map((t,ti)=>{
       const done = st.tasks[ti];
       if(t.photo){
@@ -445,7 +456,7 @@ function toggleStation(sid){
   el.classList.toggle("open");
   if(el.classList.contains("open")){
     const st = state.stations[sid];
-    if(st && !st.unlocked) ensureProximityWatch();
+    if(st && !st.unlocked && !TEST_MODE) ensureProximityWatch();
   } else if(!anyLockedOpenStation()){
     stopProximityWatch();
   }
@@ -531,3 +542,10 @@ document.addEventListener("change", (e)=>{
 cloudInit();
 setLang(lang);
 renderGroups();
+
+if(TEST_MODE){
+  const badge = document.getElementById("testBadge"); if(badge) badge.hidden = false;
+  const banner = document.getElementById("testBanner"); if(banner) banner.hidden = false;
+  // Standort-Freigabe ist im Testmodus ohne Funktion (kein Cloud-Push) → ausblenden.
+  const geoCard = document.querySelector(".geo-card"); if(geoCard) geoCard.style.display = "none";
+}

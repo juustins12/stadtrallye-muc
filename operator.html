@@ -64,6 +64,12 @@
   .pin{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);display:grid;place-items:center}
   .pin span{transform:rotate(45deg);font-size:.7rem;font-weight:900;color:#fff;font-family:var(--display)}
   .note{color:var(--soft);font-size:.78rem;margin-top:14px;line-height:1.6}
+  .testbox{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .testbox .tb-txt{flex:1;min-width:200px}
+  .testbox h3{font-family:var(--display);font-weight:900;font-size:1.05rem;margin-bottom:3px}
+  .testbox p{color:var(--soft);font-size:.8rem}
+  .testbox a{background:var(--ok);color:#0d2a14;border:0;border-radius:10px;padding:11px 18px;font-size:.9rem;cursor:pointer;font-family:var(--display);font-weight:600;text-decoration:none;white-space:nowrap}
+  .testbox a:hover{filter:brightness(1.08)}
   .danger{margin-top:18px}
   .danger button{background:transparent;border:1px solid var(--seal);color:var(--seal);border-radius:10px;padding:9px 14px;font-size:.82rem;cursor:pointer;font-family:var(--body);font-weight:700}
   .danger button:hover{background:var(--seal);color:#fff}
@@ -98,6 +104,14 @@
       Standorte erscheinen nur, wenn eine Gruppe die Freigabe in der App aktiviert hat. Aktualisierung erfolgt automatisch in Echtzeit.<br>
       <b>Datenschutz:</b> Nach dem Event alle Daten löschen.
     </p>
+    <div class="testbox">
+      <div class="tb-txt">
+        <h3>🧪 Testspiel starten</h3>
+        <p>Öffnet die Rallye ohne Geofencing – alle Stationen sind sofort offen, kein Standort und kein Gruppen-Code nötig. Läuft rein lokal und erscheint <b>nicht</b> in diesem Leitstand.</p>
+      </div>
+      <a href="index.html?test=1" target="_blank" rel="noopener">Testspiel öffnen ↗</a>
+    </div>
+
     <div class="danger">
       <button id="wipeBtn">⚠ Alle Rallye-Daten löschen (nach dem Event)</button>
     </div>
@@ -108,6 +122,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="firebase-config.js?v=3"></script>
-<script src="operator.js?v=4"></script>
+<script src="operator.js?v=5"></script>
 </body>
 </html>

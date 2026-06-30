@@ -52,6 +52,8 @@
   .topbar-in{max-width:780px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:12px}
   .brand{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:900;letter-spacing:.3px;font-size:1.02rem}
   .brand .seal-dot{width:22px;height:22px;border-radius:50%;background:var(--seal);color:#fff;display:grid;place-items:center;font-size:.7rem;box-shadow:inset 0 0 0 2px rgba(255,255,255,.45)}
+  .test-badge{font-family:var(--body);font-weight:800;font-size:.66rem;letter-spacing:.12em;background:var(--seal);color:#fff;padding:3px 8px;border-radius:999px}
+  .test-banner{background:#e0664f;color:#fff;text-align:center;font-weight:700;font-size:.8rem;padding:7px 14px;line-height:1.35}
   .spacer{flex:1}
   .lang-toggle{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
   .lang-toggle button{border:0;background:transparent;padding:6px 12px;font-family:var(--body);font-weight:700;font-size:.82rem;color:var(--ink-soft);cursor:pointer;transition:.18s}
@@ -230,6 +232,7 @@
 <div class="topbar">
   <div class="topbar-in">
     <div class="brand"><span class="seal-dot">絆</span><span data-de>München Rallye</span><span data-ja>ミュンヘン・ラリー</span></div>
+    <span class="test-badge" id="testBadge" hidden>TEST</span>
     <div class="spacer"></div>
     <button class="iconbtn" id="homeBtn" hidden data-nav="screen-welcome" title="Start">↺</button>
     <div class="lang-toggle">
@@ -237,6 +240,11 @@
       <button id="btn-ja" data-lang="ja">日本語</button>
     </div>
   </div>
+</div>
+
+<div class="test-banner" id="testBanner" hidden>
+  <span data-de>🧪 Testmodus – Geofencing aus, alle Stationen offen. Fortschritt nur lokal (nicht im Leitstand).</span>
+  <span data-ja>🧪 テストモード — ジオフェンス無効、全スポット解放。進捗はローカルのみ（管理画面には反映されません）。</span>
 </div>
 
 <div class="wrap">
@@ -375,6 +383,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
