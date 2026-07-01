@@ -106,8 +106,16 @@ function renderGroups(data){
       <span class="badge ${solved?'solved':'pending'}">${solved?'🧩 Rätsel gelöst':'Rätsel offen'}</span>
       <div class="geo ${hasLoc?'live':''}">${geoTxt}</div>
       <div class="code">🔑 Zugangscode: <b>${m.code}</b></div>
+      <button class="pdfbtn" data-pdf="${m.id}">📄 Spielanleitung als PDF (A4)</button>
     </div>`;
   }).join("");
+
+  grid.querySelectorAll("[data-pdf]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(typeof openGroupPrint === "function") openGroupPrint(btn.getAttribute("data-pdf"));
+      else alert("Druckmodul (print.js) nicht geladen.");
+    });
+  });
 
   if(map) updateMarkers(data);
 }
