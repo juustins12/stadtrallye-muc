@@ -1,5 +1,19 @@
 {
   "database": {
     "rules": "database.rules.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "database.rules.json",
+      "**/*.md"
+    ],
+    "rewrites": [
+      { "source": "/operatoren", "destination": "/operator.html" },
+      { "source": "/operator", "destination": "/operator.html" }
+    ]
   }
 }
