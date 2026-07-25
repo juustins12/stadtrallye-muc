@@ -72,6 +72,13 @@
   .testbox p{color:var(--soft);font-size:.8rem}
   .testbox a{background:var(--ok);color:#0d2a14;border:0;border-radius:10px;padding:11px 18px;font-size:.9rem;cursor:pointer;font-family:var(--display);font-weight:600;text-decoration:none;white-space:nowrap}
   .testbox a:hover{filter:brightness(1.08)}
+  .docbox{margin-bottom:22px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .docbox .db-txt{flex:1;min-width:200px}
+  .docbox h3{font-family:var(--display);font-weight:900;font-size:1.05rem;margin-bottom:3px}
+  .docbox p{color:var(--soft);font-size:.8rem}
+  .docbox button{background:var(--gold);color:#1c1608;border:0;border-radius:10px;padding:11px 18px;font-size:.9rem;cursor:pointer;font-family:var(--display);font-weight:600;white-space:nowrap}
+  .docbox button:hover{filter:brightness(1.06)}
+  .docbox button:disabled{opacity:.6;cursor:progress;filter:none}
   .danger{margin-top:18px}
   .danger button{background:transparent;border:1px solid var(--seal);color:var(--seal);border-radius:10px;padding:9px 14px;font-size:.82rem;cursor:pointer;font-family:var(--body);font-weight:700}
   .danger button:hover{background:var(--seal);color:#fff}
@@ -97,6 +104,14 @@
     <button id="logoutBtn">Sperren</button>
   </div>
   <div class="wrap">
+    <div class="docbox">
+      <div class="db-txt">
+        <h3>📦 Alle Dokumente als ZIP</h3>
+        <p>Lädt die <b>Spielanleitung</b> und alle <b>5 Gruppen-Dokumente</b> (A4, mit Codes) gebündelt als PDF-ZIP herunter. Erstellung kann einige Sekunden dauern.</p>
+      </div>
+      <button id="zipBtn">⬇︎ Dokumente-ZIP erstellen</button>
+    </div>
+
     <div class="grid" id="groupGrid"></div>
 
     <div class="maphead">🗺️ Live-Standorte <span class="status" id="locCount" style="font-weight:400"></span></div>
@@ -123,9 +138,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="firebase-config.js?v=3"></script>
 <script src="game-data.js?v=1"></script>
-<script src="print.js?v=1"></script>
-<script src="operator.js?v=6"></script>
+<script src="qr.js?v=1"></script>
+<script src="print.js?v=6"></script>
+<script src="operator.js?v=9"></script>
 </body>
 </html>
