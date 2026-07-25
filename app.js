@@ -58,14 +58,41 @@ function cloudPush(){
   }).catch(e=>console.warn("Cloud-Push:", e));
 }
 
+/* ============================ STANDORT: GEMEINSAME HELFER ============================ */
+/* Handys brauchen für einen GPS-Fix oft deutlich länger als 20 s (kalter Start, Häuser-
+   schluchten). Darum: großzügige Timeouts, und ein Timeout ist KEINE Ablehnung. */
+const GEO_OPTS_HIGH = { enableHighAccuracy:true,  maximumAge:10000, timeout:45000 };
+const GEO_OPTS_SOFT = { enableHighAccuracy:false, maximumAge:60000, timeout:60000 };
+
+function geoAvailable(){ return !!navigator.geolocation && window.isSecureContext !== false; }
+function geoDenied(err){ return !!err && err.code === 1; }   // PERMISSION_DENIED
+function geoErrText(err){
+  if(geoDenied(err)) return lang==='de'
+    ? 'Standort-Zugriff abgelehnt – bitte in den Browser-Einstellungen erlauben.'
+    : '位置情報が拒否されました – ブラウザの設定で許可してください。';
+  if(err && err.code === 2) return lang==='de'
+    ? 'Kein GPS-Signal – bitte kurz nach draußen gehen.'
+    : 'GPS信号がありません – 屋外に出てください。';
+  return lang==='de'
+    ? 'Standort dauert noch – wir suchen weiter…'
+    : '位置情報を取得中です…';
+}
+/* Ist die Berechtigung bereits hart blockiert? (Permissions API, wo vorhanden) */
+function geoPermissionState(){
+  if(!navigator.permissions || !navigator.permissions.query) return Promise.resolve("unknown");
+  return navigator.permissions.query({name:"geolocation"}).then(p=>p.state).catch(()=>"unknown");
+}
+
 /* ============================ STANDORT-FREIGABE ============================ */
 let geoWatch = null;
+let geoSoftRetry = false;
 function isSharing(){ return localStorage.getItem("rally_geo") === "1"; }
-function startGeo(){
-  if(!navigator.geolocation){ toast(lang==='de'?'Standort nicht verfügbar.':'位置情報を利用できません。'); setGeoChk(false); return; }
+function startGeo(opts){
+  if(!geoAvailable()){ toast(lang==='de'?'Standort nicht verfügbar.':'位置情報を利用できません。'); setGeoChk(false); return; }
   if(geoWatch !== null) return;
   geoWatch = navigator.geolocation.watchPosition(
     pos=>{
+      geoSoftRetry = false;
       if(db && groupId){
         db.ref("rallye/"+groupId+"/loc").set({
           lat: pos.coords.latitude, lng: pos.coords.longitude,
@@ -73,15 +100,41 @@ function startGeo(){
         }).catch(()=>{});
       }
     },
-    err=>{ toast(lang==='de'?'Standort-Zugriff abgelehnt.':'位置情報が拒否されました。'); setGeoChk(false); stopGeoWatch(); localStorage.setItem("rally_geo","0"); },
-    { enableHighAccuracy:true, maximumAge:8000, timeout:20000 }
+    err=>{
+      toast(geoErrText(err));
+      if(geoDenied(err)){
+        // Nur eine echte Ablehnung schaltet die Freigabe ab.
+        setGeoChk(false); stopGeoWatch(); localStorage.setItem("rally_geo","0");
+        return;
+      }
+      // Timeout / kein Signal: einmal auf grobe Ortung umstellen und weiter versuchen.
+      if(!geoSoftRetry){
+        geoSoftRetry = true;
+        stopGeoWatch();
+        startGeo(GEO_OPTS_SOFT);
+      }
+    },
+    opts || GEO_OPTS_HIGH
   );
 }
 function stopGeoWatch(){ if(geoWatch!==null){ navigator.geolocation.clearWatch(geoWatch); geoWatch=null; } }
 function setLocationSharing(on){
   localStorage.setItem("rally_geo", on?"1":"0");
-  if(on){ startGeo(); toast(lang==='de'?'Standort wird geteilt.':'位置情報を共有中。'); }
+  if(on){ geoSoftRetry = false; startGeo(); toast(lang==='de'?'Standort wird geteilt.':'位置情報を共有中。'); }
   else{ stopGeoWatch(); if(db && groupId) db.ref("rallye/"+groupId+"/loc").remove().catch(()=>{}); toast(lang==='de'?'Standort-Freigabe beendet.':'位置情報の共有を停止。'); }
+}
+/* Nach einem Reload fortsetzen – aber nicht ins Leere fragen, wenn hart blockiert. */
+function resumeGeoSharing(){
+  if(!isSharing()) return;
+  geoPermissionState().then(st=>{
+    if(st === "denied"){
+      setGeoChk(false); localStorage.setItem("rally_geo","0");
+      toast(geoErrText({code:1}));
+      return;
+    }
+    geoSoftRetry = false;
+    startGeo();
+  });
 }
 function setGeoChk(v){ const c=document.getElementById("geoChk"); if(c) c.checked=v; }
 
@@ -106,13 +159,15 @@ function anyLockedOpenStation(){
     return st && !st.unlocked && el && el.classList.contains("open");
   });
 }
-function ensureProximityWatch(){
+let proximitySoftRetry = false;
+function ensureProximityWatch(opts){
   if(proximityWatch !== null) return;
-  if(!navigator.geolocation){
+  if(!geoAvailable()){
     STATIONS.forEach(s=>{ const d=document.getElementById("dist-"+s.id); if(d) d.innerHTML = lang==='de'?'Standort nicht verfügbar.':'位置情報が利用できません。'; });
     return;
   }
-  proximityWatch = navigator.geolocation.watchPosition(onProximityPos, onProximityErr, { enableHighAccuracy:true, maximumAge:5000, timeout:20000 });
+  if(!opts) proximitySoftRetry = false;
+  proximityWatch = navigator.geolocation.watchPosition(onProximityPos, onProximityErr, opts || GEO_OPTS_HIGH);
 }
 function stopProximityWatch(){ if(proximityWatch!==null){ navigator.geolocation.clearWatch(proximityWatch); proximityWatch=null; } }
 
@@ -150,15 +205,27 @@ function onProximityPos(pos){
   }
   if(!stillLocked) stopProximityWatch();
 }
-function onProximityErr(){
+function onProximityErr(err){
+  // Zuerst den Watch freigeben – sonst bleibt er tot liegen und wird nie neu gestartet.
+  stopProximityWatch();
+  const denied = geoDenied(err);
+  const msg = denied
+    ? (lang==='de' ? '⚠ Standort-Zugriff nötig – bitte erlauben.' : '⚠ 位置情報へのアクセスを許可してください。')
+    : (lang==='de' ? '📡 Standort wird gesucht…' : '📡 位置情報を取得中…');
   STATIONS.forEach(s=>{
-    const st = state.stations[s.id];
+    const st = state.stations && state.stations[s.id];
     const el = document.getElementById("station-"+s.id);
     if(st && !st.unlocked && el && el.classList.contains("open")){
       const distEl = document.getElementById("dist-"+s.id);
-      if(distEl) distEl.innerHTML = lang==='de' ? '⚠ Standort-Zugriff nötig – bitte erlauben.' : '⚠ 位置情報へのアクセスを許可してください。';
+      if(distEl) distEl.innerHTML = msg;
     }
   });
+  if(denied) return;
+  // Timeout / kein Signal: einmal auf grobe Ortung umstellen und weiter versuchen.
+  if(!proximitySoftRetry){
+    proximitySoftRetry = true;
+    ensureProximityWatch(GEO_OPTS_SOFT);
+  }
 }
 
 /* ============================ FOTO-UPLOAD ============================ */
@@ -266,7 +333,7 @@ function pickGroup(id){
   renderRoute();
   show("screen-route");
   setGeoChk(isSharing());
-  if(isSharing()) startGeo();  // Standort-Freigabe nach Neuladen fortsetzen
+  resumeGeoSharing();          // Standort-Freigabe nach Neuladen fortsetzen
 }
 
 /* ============================ RENDER: route ============================ */
