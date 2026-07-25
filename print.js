@@ -157,7 +157,10 @@ function groupSheetCaptureCSS(){
       return s;
     }).join(", ");
     return `${scoped}{${decls}}`;
-  });
+  })
+  // Im PDF liefert der html2pdf-Rand bereits den Seitenabstand; die eigene
+  // Aussenpolsterung von .sheet wuerde ihn oben zusaetzlich verdoppeln.
+  + `\n.sheet{max-width:none;width:100%;margin:0;padding:0}`;
 }
 
 /* Inhalt (.sheet) einer Gruppe – gemeinsam für Druck & PDF */

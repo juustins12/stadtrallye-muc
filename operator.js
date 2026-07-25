@@ -91,7 +91,14 @@ async function downloadAllDocsZip(){
 async function groupPdfBlob(group){
   const host = document.createElement("div");
   host.setAttribute("aria-hidden", "true");
-  host.style.cssText = "position:fixed;left:-10000px;top:0;width:794px;background:#fff";
+  // Host NICHT nach left:-10000px schieben: html2canvas rechnet die Position des
+  // Elements in den Canvas ein, bei scale:2 verdoppelt. Der Bogen landet dann
+  // verschoben im Canvas und wird rechts abgeschnitten. Stattdessen bleibt der
+  // Host bei 0/0 und wird ueber height:0 + overflow:hidden unsichtbar gemacht;
+  // die Kindelemente behalten dabei ihre korrekten Layout-Masse.
+  // Breite exakt = .sheet-Breite (180mm), damit "margin:0 auto" keinen
+  // horizontalen Versatz erzeugt.
+  host.style.cssText = "position:fixed;left:0;top:0;width:180mm;height:0;overflow:hidden;background:#fff";
   document.body.appendChild(host);
   try{
     host.innerHTML = `<style>${groupSheetCaptureCSS()}</style>` + groupSheetInner(group);
@@ -101,9 +108,14 @@ async function groupPdfBlob(group){
     await new Promise(r=>setTimeout(r, 200));
     const el = host.querySelector(".sheet");
     const opt = {
-      margin:      [8, 8, 10, 8],
+      // Ränder wie im Druck-Stylesheet (@page: 16mm 15mm 18mm). Damit bleibt der
+      // Inhalt innerhalb des nicht bedruckbaren Randes ueblicher Buero-Drucker
+      // (meist 5-10mm, Sicherheitsreserve bis ~12,7mm/0,5"). Die Inhaltsbreite
+      // betraegt so 210-15-15 = 180mm und entspricht exakt .sheet, wird also 1:1
+      // uebernommen statt skaliert.
+      margin:      [16, 15, 18, 15],
       image:       { type:"jpeg", quality:0.98 },
-      html2canvas: { scale:2, useCORS:true, backgroundColor:"#ffffff", windowWidth:794 },
+      html2canvas: { scale:2, useCORS:true, backgroundColor:"#ffffff" },
       jsPDF:       { unit:"mm", format:"a4", orientation:"portrait" },
       pagebreak:   { mode:["css","legacy"] }
     };
@@ -131,7 +143,7 @@ function initDashboard(){
   if(typeof firebase==="undefined" || typeof FIREBASE_CONFIG==="undefined"
      || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith("DEIN")){
     dot.classList.add("off"); status.textContent = "Keine Firebase-Config";
-    renderGroups({}); return;
+    renderGroups({}); renderGallery({}); return;
   }
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
@@ -142,6 +154,8 @@ function initDashboard(){
       status.textContent = ok ? "live verbunden" : "getrennt…";
     });
     db.ref("rallye").on("value", snap=>{ renderGroups(snap.val() || {}); });
+
+    db.ref("rallye_photos").on("value", snap=>{ renderGallery(snap.val() || {}); });
 
     document.getElementById("wipeBtn").addEventListener("click", ()=>{
       if(confirm("Wirklich ALLE Rallye-Daten (Fortschritt + Standorte + Fotos) löschen?")){
@@ -205,6 +219,127 @@ function renderGroups(data){
   });
 
   if(map) updateMarkers(data);
+}
+
+/* ---------- Foto-Galerie ---------- */
+var photoData = {};
+
+function esc(s){
+  return String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+}
+
+/* "s3_1" -> { sid:3, ti:1, station, letter, stationName, taskText } */
+function photoMeta(key){
+  const m = /^s(\d+)_(\d+)$/.exec(key);
+  const sid = m ? +m[1] : 0, ti = m ? +m[2] : 0;
+  const st = (typeof STATIONS!=="undefined") ? STATIONS.find(s=>s.id===sid) : null;
+  return {
+    sid, ti,
+    letter: st ? st.letter : "?",
+    stationName: st ? st.name.de : ("Station "+sid),
+    taskText: st && st.tasks && st.tasks[ti] ? st.tasks[ti].de : ("Aufgabe "+(ti+1))
+  };
+}
+
+/* Sortierte Foto-Liste einer Gruppe */
+function groupPhotos(gid){
+  const raw = photoData[gid] || {};
+  return Object.keys(raw)
+    .map(k => Object.assign({ key:k, img:raw[k].img, at:raw[k].at }, photoMeta(k)))
+    .filter(p => p.img)
+    .sort((a,b)=> a.sid-b.sid || a.ti-b.ti);
+}
+
+function renderGallery(data){
+  photoData = data || {};
+  const box = document.getElementById("gallery");
+  let total = 0;
+
+  const html = GROUP_META.map(m=>{
+    const list = groupPhotos(m.id);
+    total += list.length;
+    if(!list.length) return "";
+    const thumbs = list.map(p=>`
+      <button class="thumb" data-gid="${m.id}" data-key="${p.key}">
+        <img src="${p.img}" alt="${esc(p.stationName)} – Aufgabe ${p.ti+1}" loading="lazy">
+        <div class="cap"><b>${p.letter} · ${esc(p.stationName)}</b>Aufgabe ${p.ti+1} · ${relTime(p.at)}</div>
+      </button>`).join("");
+    return `
+    <div class="galgroup" style="--gc:${m.color}">
+      <h3>${m.emoji} ${m.name} <small>${list.length} Foto${list.length>1?'s':''}</small></h3>
+      <div class="thumbs">${thumbs}</div>
+    </div>`;
+  }).join("");
+
+  box.innerHTML = html || `<div class="galempty">Noch keine Fotos hochgeladen.</div>`;
+  document.getElementById("photoCount").textContent = total ? `(${total} insgesamt)` : "";
+  document.getElementById("photoZipBtn").disabled = total === 0;
+
+  box.querySelectorAll(".thumb").forEach(btn=>{
+    btn.addEventListener("click", ()=> openLightbox(btn.getAttribute("data-gid"), btn.getAttribute("data-key")));
+  });
+}
+
+function openLightbox(gid, key){
+  const p = groupPhotos(gid).find(x=>x.key===key);
+  if(!p) return;
+  const m = GROUP_META.find(g=>g.id===gid);
+  document.getElementById("lbImg").src = p.img;
+  document.getElementById("lbCap").innerHTML =
+    `<b>${m.emoji} ${m.name} · ${p.letter} ${esc(p.stationName)}</b><br>${esc(p.taskText)}<br>` +
+    (p.at ? new Date(p.at).toLocaleString("de-DE") : "—");
+  document.getElementById("lightbox").classList.add("on");
+}
+function closeLightbox(){
+  document.getElementById("lightbox").classList.remove("on");
+  document.getElementById("lbImg").src = "";
+}
+document.getElementById("lbClose").addEventListener("click", closeLightbox);
+document.getElementById("lightbox").addEventListener("click", e=>{ if(e.target.id==="lightbox") closeLightbox(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
+
+/* ---------- Fotos als ZIP ---------- */
+function safeName(s){
+  return String(s)
+    .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+    .replace(/Ä/g,"Ae").replace(/Ö/g,"Oe").replace(/Ü/g,"Ue")
+    .replace(/[^\w]+/g,"-").replace(/^-|-$/g,"");
+}
+
+document.getElementById("photoZipBtn").addEventListener("click", downloadPhotosZip);
+
+async function downloadPhotosZip(){
+  const btn = document.getElementById("photoZipBtn");
+  if(typeof JSZip==="undefined"){
+    alert("ZIP-Bibliothek nicht geladen. Bitte Internetverbindung prüfen und Seite neu laden."); return;
+  }
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = "Packe ZIP…";
+  try{
+    const zip = new JSZip();
+    let n = 0;
+    GROUP_META.forEach(m=>{
+      groupPhotos(m.id).forEach(p=>{
+        // data:image/jpeg;base64,XXXX  ->  reiner Base64-Teil für JSZip
+        const b64 = String(p.img).split(",")[1];
+        if(!b64) return;
+        const name = `${safeName(m.name)}/S${p.sid}-${p.letter}_${safeName(p.stationName)}_Aufgabe-${p.ti+1}.jpg`;
+        zip.file(name, b64, { base64:true });
+        n++;
+      });
+    });
+    if(!n){ alert("Keine Fotos vorhanden."); return; }
+    const out = await zip.generateAsync({ type:"blob" });
+    const url = URL.createObjectURL(out);
+    const a = document.createElement("a");
+    a.href = url; a.download = "Muenchen-Stadtrallye_Fotos.zip";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  }catch(e){
+    alert("Fehler beim Erstellen der ZIP: " + (e && e.message ? e.message : e));
+  }finally{
+    btn.disabled = false; btn.textContent = orig;
+  }
 }
 
 function updateMarkers(data){
